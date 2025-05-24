@@ -3,6 +3,8 @@ package movie
 import (
 	"net/http"
 	"roketin-case-study-challenge2/internal"
+	"roketin-case-study-challenge2/internal/response"
+	"roketin-case-study-challenge2/internal/constant"
 
 	"strconv"
 
@@ -38,13 +40,13 @@ func (h *MovieHandler) CreateMovie(w http.ResponseWriter, r *http.Request) {
 
 	movieData, file, err := h.movieParser.ParseCreateMovie(r)
 	if err != nil {
-		internal.RespondWithError(w, http.StatusBadRequest, err.Error())
+		response.Error(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	filePath, err := internal.SaveUploadedFile(file, "uploads")
 	if err != nil {
-		internal.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -52,14 +54,10 @@ func (h *MovieHandler) CreateMovie(w http.ResponseWriter, r *http.Request) {
 
 	createdMovie, err := h.movieFlow.CreateMovie(ctx, movieData)
 	if err != nil {
-		internal.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 	}
 
-	response := map[string]interface{}{
-		"data": createdMovie,
-	}
-
-	internal.RespondWithJSON(w, http.StatusCreated, response)
+	response.Success(w, createdMovie)
 }
 
 func (h *MovieHandler) ListMovies(w http.ResponseWriter, r *http.Request) {
@@ -67,27 +65,24 @@ func (h *MovieHandler) ListMovies(w http.ResponseWriter, r *http.Request) {
 
 	filter, err := h.movieParser.ParseMovieFilter(r)
 	if err != nil {
-		internal.RespondWithError(w, http.StatusBadRequest, err.Error())
+		response.Error(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	movies, total, err := h.movieFlow.ListMovies(ctx, filter)
 	if err != nil {
-		internal.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	response := map[string]interface{}{
-		"data": movies,
-		"pagination": map[string]interface{}{
-			"current_page": filter.GetPage(),
-			"per_page":     filter.GetLimit(),
-			"total_items":  total,
-			"total_pages":  (total + int64(filter.GetLimit()) - 1) / int64(filter.GetLimit()),
-		},
+	pagination := response.Pagination{
+		CurrentPage: filter.GetPage(),
+		PerPage: filter.GetLimit(),
+		TotalItems: total,
+		TotalPages: int((total + int64(filter.GetLimit()) - 1) / int64(filter.GetLimit())),
 	}
 
-	internal.RespondWithJSON(w, http.StatusOK, response)
+	response.SuccessWithPagination(w, movies, pagination)
 }
 
 func (h *MovieHandler) SearchMovies(w http.ResponseWriter, r *http.Request) {
@@ -95,27 +90,24 @@ func (h *MovieHandler) SearchMovies(w http.ResponseWriter, r *http.Request) {
 
 	filter, err := h.movieParser.ParseMovieFilter(r)
 	if err != nil {
-		internal.RespondWithError(w, http.StatusBadRequest, err.Error())
+		response.Error(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	movies, total, err := h.movieFlow.ListMovies(ctx, filter)
 	if err != nil {
-		internal.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	response := map[string]interface{}{
-		"data": movies,
-		"pagination": map[string]interface{}{
-			"current_page": filter.GetPage(),
-			"per_page":     filter.GetLimit(),
-			"total_items":  total,
-			"total_pages":  (total + int64(filter.GetLimit()) - 1) / int64(filter.GetLimit()),
-		},
+	pagination := response.Pagination{
+		CurrentPage: filter.GetPage(),
+		PerPage: filter.GetLimit(),
+		TotalItems: total,
+		TotalPages: int((total + int64(filter.GetLimit()) - 1) / int64(filter.GetLimit())),
 	}
 
-	internal.RespondWithJSON(w, http.StatusOK, response)
+	response.SuccessWithPagination(w, movies, pagination)
 }
 
 func (h *MovieHandler) UpdateMovie(w http.ResponseWriter, r *http.Request) {
@@ -123,13 +115,13 @@ func (h *MovieHandler) UpdateMovie(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		internal.RespondWithError(w, http.StatusBadRequest, "invalid movie ID")
+		response.Error(w, http.StatusBadRequest, constant.ERROR_INVALID_MOVIE_ID)
 		return
 	}
 
 	request, err := h.movieParser.ParseUpdateMovie(r)
 	if err != nil {
-		internal.RespondWithError(w, http.StatusBadRequest, err.Error())
+		response.Error(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -137,11 +129,11 @@ func (h *MovieHandler) UpdateMovie(w http.ResponseWriter, r *http.Request) {
 
 	updatedMovie, err := h.movieFlow.UpdateMovie(ctx, request)
 	if err != nil {
-		internal.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	internal.RespondWithJSON(w, http.StatusOK, updatedMovie)
+	response.Success(w, updatedMovie)
 }
 
 func (h *MovieHandler) DeleteMovie(w http.ResponseWriter, r *http.Request) {
@@ -149,19 +141,15 @@ func (h *MovieHandler) DeleteMovie(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		internal.RespondWithError(w, http.StatusBadRequest, "invalid movie ID")
+		response.Error(w, http.StatusBadRequest, constant.ERROR_INVALID_MOVIE_ID)
 		return
 	}
 
 	err = h.movieFlow.DeleteMovie(ctx, id)
 	if err != nil {
-		internal.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	response := map[string]interface{}{
-		"message": "Movie deleted successfully",
-	}
-
-	internal.RespondWithJSON(w, http.StatusOK, response)
+	response.Success(w, constant.MOVIE_DELETED_SUCCESSFULLY)
 }

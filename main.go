@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"roketin-case-study-challenge2/config"
-	"roketin-case-study-challenge2/internal"
 	"roketin-case-study-challenge2/internal/database"
 	"roketin-case-study-challenge2/internal/movie"
 	"time"
@@ -33,15 +32,6 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
-
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		payload := map[string]string{
-			"status":  "UP",
-			"message": "API is running",
-		}
-
-		internal.RespondWithJSON(w, http.StatusOK, payload)
-	})
 
 	movieRepo := movie.NewMySQLMovieRepository(db)
 	movieFlow := movie.NewMovieFlow(movieRepo)
