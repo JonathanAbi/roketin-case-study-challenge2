@@ -41,7 +41,7 @@ func (f *MovieFilter) GetPage() int {
 
 func (f *MovieFilter) GetLimit() int {
 	if f.Limit <= 0 {
-		return 2
+		return 10
 	}
 	return f.Limit
 }

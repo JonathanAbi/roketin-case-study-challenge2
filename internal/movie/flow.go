@@ -35,7 +35,7 @@ func (f *movieFlow) CreateMovie(ctx context.Context, movie *entity.Movie) (*enti
 
 	createdMovie, err := f.movieRepo.CreateMovie(ctx, movie)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create movie: %w", err)
+		return nil, err
 	}
 
 	return createdMovie, nil
@@ -44,7 +44,7 @@ func (f *movieFlow) CreateMovie(ctx context.Context, movie *entity.Movie) (*enti
 func (f *movieFlow) ListMovies(ctx context.Context, filter *entity.MovieFilter) ([]entity.Movie, int64, error) {
 	movies, total, err := f.movieRepo.ListMovies(ctx, filter)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to get list movies: %w", err)
+		return nil, 0, err
 	}
 
 	return movies, total, nil
@@ -59,7 +59,7 @@ func (f *movieFlow) UpdateMovie(ctx context.Context, movie *entity.Movie) (*enti
 
 	updatedMovie, err := f.movieRepo.UpdateMovie(ctx, movie)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update movie: %w", err)
+		return nil, err
 	}
 
 	return updatedMovie, nil
@@ -68,7 +68,7 @@ func (f *movieFlow) UpdateMovie(ctx context.Context, movie *entity.Movie) (*enti
 func (f *movieFlow) DeleteMovie(ctx context.Context, id int) error {
 	err := f.movieRepo.DeleteMovie(ctx, id)
 	if err != nil {
-		return fmt.Errorf("failed to delete movie: %w", err)
+		return err
 	}
 
 	return nil

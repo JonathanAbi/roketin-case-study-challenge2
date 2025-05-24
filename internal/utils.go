@@ -6,6 +6,7 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -39,4 +40,23 @@ func SaveUploadedFile(file *multipart.FileHeader, baseUploadPath string) (string
 	}
 
 	return filePath, nil
+}
+
+func CleanCsvString(input string) string {
+	if input == "" {
+		return ""
+	}
+	parts := strings.Split(input, ",")
+	cleanedParts := make([]string, len(parts))
+	for i, part := range parts {
+		cleanedParts[i] = strings.TrimSpace(part)
+	}
+
+	finalParts := []string{}
+	for _, part := range cleanedParts {
+		if part != "" {
+			finalParts = append(finalParts, part)
+		}
+	}
+	return strings.Join(finalParts, ",")
 }

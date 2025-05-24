@@ -35,34 +35,51 @@ func (r *mySQLMovieRepository) ListMovies(ctx context.Context, filter *entity.Mo
 	query := r.db.WithContext(ctx).Model(&entity.Movie{})
 
 	if filter.Title != "" {
-		query = query.Where("LOWER(title) LIKE ?", "%" + strings.ToLower(filter.Title) + "%")
+		query = query.Where("LOWER(title) LIKE ?", "%"+strings.ToLower(filter.Title)+"%")
 	}
 
 	if filter.Description != "" {
-		query = query.Where("LOWER(description) LIKE ?", "%" + strings.ToLower(filter.Description) + "%")
+		query = query.Where("LOWER(description) LIKE ?", "%"+strings.ToLower(filter.Description)+"%")
 	}
 
-	for _, genre := range filter.Genres {
-		query = query.Where("LOWER(genres) LIKE ?", "%" + strings.ToLower(genre) + "%")
+	if len(filter.Genres) > 0 {
+		var conditions []string
+		var values []interface{}
+
+		for _, genre := range filter.Genres {
+			conditions = append(conditions, "genres LIKE ?")
+			values = append(values, "%"+genre+"%")
+		}
+
+		query = query.Where(strings.Join(conditions, " OR "), values...)
 	}
 
-	for _, artist := range filter.Artists {
-		query = query.Where("LOWER(artists) LIKE ?", "%" + strings.ToLower(artist) + "%")
+	if len(filter.Artists) > 0 {
+		var conditions []string
+		var values []interface{}
+
+		for _, artist := range filter.Artists {
+			conditions = append(conditions, "artists LIKE ?")
+			values = append(values, "%"+artist+"%")
+		}
+
+		query = query.Where(strings.Join(conditions, " OR "), values...)
 	}
 
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to get total movies: %w", err)
 	}
+
 	page := filter.GetPage()
 	limit := filter.GetLimit()
 	offset := (page - 1) * limit
 
 	result := query.Order("created_at DESC").Limit(limit).Offset(offset).Find(&movies)
 	if result.Error != nil {
-		return nil, 0,fmt.Errorf("failed to get movies: %w", result.Error)
+		return nil, 0, fmt.Errorf("failed to get movies: %w", result.Error)
 	}
 
-	return movies, total,nil
+	return movies, total, nil
 }
 
 func (r *mySQLMovieRepository) UpdateMovie(ctx context.Context, movie *entity.Movie) (*entity.Movie, error) {
@@ -96,6 +113,6 @@ func (r *mySQLMovieRepository) DeleteMovie(ctx context.Context, id int) error {
 	if result.RowsAffected == 0 {
 		return fmt.Errorf("movie with ID %d not found", id)
 	}
-	
+
 	return nil
 }

@@ -5,6 +5,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"path/filepath"
+	"roketin-case-study-challenge2/internal"
 	"roketin-case-study-challenge2/internal/entity"
 	"strconv"
 	"strings"
@@ -55,28 +56,28 @@ func (p *MovieParser) ParseCreateMovie(r *http.Request) (*entity.Movie, *multipa
 	}
 
 	movieData := &entity.Movie{
-		Title: title,
+		Title:       title,
 		Description: description,
-		Duration: duration,
-		Artists: artists,
-		Genres: genres,
+		Duration:    duration,
+		Artists:     internal.CleanCsvString(artists),
+		Genres:      internal.CleanCsvString(genres),
 	}
 
 	return movieData, file, nil
 }
 
-func (p *MovieParser)ParseMovieFilter(r *http.Request) (*entity.MovieFilter, error) {
+func (p *MovieParser) ParseMovieFilter(r *http.Request) (*entity.MovieFilter, error) {
 	query := r.URL.Query()
 
 	title := query.Get("title")
 	description := query.Get("description")
-	genres := query["genre"]
-	artists := query["artist"]
+	genres := query.Get("genre")
+	artists := query.Get("artist")
 	pageStr := query.Get("page")
 	limitStr := query.Get("limit")
 
-	var page int 
-	if pageStr != "" { 
+	var page int
+	if pageStr != "" {
 		p, err := strconv.Atoi(pageStr)
 		if err != nil {
 			return nil, fmt.Errorf("page number is not valid: '%s'", pageStr)
@@ -88,7 +89,7 @@ func (p *MovieParser)ParseMovieFilter(r *http.Request) (*entity.MovieFilter, err
 	}
 
 	var limit int
-	if limitStr != "" { 
+	if limitStr != "" {
 		l, err := strconv.Atoi(limitStr)
 		if err != nil {
 			return nil, fmt.Errorf("limit number is not valid: '%s'", limitStr)
@@ -99,13 +100,13 @@ func (p *MovieParser)ParseMovieFilter(r *http.Request) (*entity.MovieFilter, err
 		limit = l
 	}
 
-	return &entity.MovieFilter {
-		Title: title,
+	return &entity.MovieFilter{
+		Title:       title,
 		Description: description,
-		Genres: genres,
-		Artists: artists,
-		Page: page,
-		Limit: limit,
+		Genres:      strings.Split(internal.CleanCsvString(genres), ","),
+		Artists:     strings.Split(internal.CleanCsvString(artists), ","),
+		Page:        page,
+		Limit:       limit,
 	}, nil
 }
 
@@ -117,16 +118,16 @@ func (p *MovieParser) ParseUpdateMovie(r *http.Request) (*entity.Movie, error) {
 	genres := r.PostFormValue("genres")
 
 	movieData := &entity.Movie{
-		Title: title,
+		Title:       title,
 		Description: description,
-		Artists: artists,
-		Genres: genres,
+		Artists:     artists,
+		Genres:      genres,
 	}
 
-	if durationStr != "" { 
+	if durationStr != "" {
 		duration, err := strconv.Atoi(durationStr)
 		if err != nil {
-			return nil, fmt.Errorf("duration must be a number: '%s'", durationStr)
+			return nil, fmt.Errorf("duration must be a number")
 		}
 
 		movieData.Duration = duration
