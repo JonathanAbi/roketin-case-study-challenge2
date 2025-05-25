@@ -66,10 +66,10 @@ This project is built with an approach inspired by Clean Architecture, with resp
 
 ## API Endpoint Summary
 
-* `POST /api/v1/movies`: Create a new movie (use `multipart/form-data` with fields `title`, `description`, `duration_minutes`, `artists`, `genres`, and `movieFile`).
-* `GET /api/v1/movies`: List all movies (use query params like `?page=1&limit=10`).
-* `GET /api/v1/movies/search`: Search movies (use query params like `?title=...&description=...&genre=...&artist=...&page=1&limit=10`).
-* `PUT /api/v1/movies/{id}`: Update a movie (send data as `application/x-www-form-urlencoded` or `multipart/form-data` if not updating file).
-* `DELETE /api/v1/movies/{id}`: Delete a movie.
+* `POST /api/movies`: Create a new movie (use `multipart/form-data` with fields `title`, `description`, `duration_minutes`, `artists`, `genres`, and `movieFile`).
+* `GET /api/movies`: List all movies (use query params like `?page=1&limit=10`).
+* `GET /api/movies/search`: Search movies (use query params like `?title=...&description=...&genre=...&artist=...&page=1&limit=10`).
+* `PUT /api/movies/{id}`: Update a movie (send data as `application/x-www-form-urlencoded` or `multipart/form-data` if not updating file).
+* `DELETE /api/movies/{id}`: Delete a movie.
 
 ---
